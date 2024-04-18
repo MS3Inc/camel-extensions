@@ -1,0 +1,24 @@
+name: Publish package to GitHub Packages
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Override settings.xml to pull openapi4j package from GH and push camel-rest-extensions to GH using token with write:packages and read:packages scope
+        uses: whelk-io/maven-settings-xml-action@v22
+        with:
+          servers: '[{ "id": "github", "username": "${{ secrets.USERNAME }}", "password": "${{ secrets.PACKAGES_TOKEN }}" }]'
+      - name: Publish package
+        run: mvn --batch-mode deploy
